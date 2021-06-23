@@ -1,3 +1,4 @@
-struct SecureAggregationClient {
-    var text = "Hello, World!"
+public struct SecureAggregationClient {
+    public init() {}
+    public var text = "Hello, World!"
 }
