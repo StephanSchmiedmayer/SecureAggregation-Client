@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "SecureAggregationCore",
+        "repositoryURL": "/Users/stephan/developer/bachelorarbeit/SecureAggregationCore",
+        "state": {
+          "branch": "main",
+          "revision": "a3f8377b22b6428293efe0172cf9ebc72aad99d3",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}
