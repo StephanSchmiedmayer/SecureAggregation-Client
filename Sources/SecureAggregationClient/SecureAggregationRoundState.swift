@@ -9,15 +9,15 @@ import Foundation
 import SecureAggregationCore
 
 /// State gets set with the results collected from the Server
-enum SecureAggregationRoundState {
+enum SecureAggregationRoundState<Value: SAWrappedValue> {
     case aborted
     case waiting
     case login(_: LoginState)
-    case setup(_: SetupState)
-    case round0(_: Round0State)
-    case round0Finished(_: Round0FinishedState)
-    case round1(_: Round1State)
-    case round1Finished(_: Round1FinishedState)
+    case setup(_: SetupState<Value>)
+    case round0(_: Round0State<Value>)
+    case round0Finished(_: Round0FinishedState<Value>)
+    case round1(_: Round1State<Value>)
+    case round1Finished(_: Round1FinishedState<Value>)
     case round2(_: Round2State)
     case round2Finished(_: Round2FinishedState)
 //    case round3 (all red parts skipped for now)
@@ -36,10 +36,10 @@ class LoginState {
     }
 }
 
-class SetupState: LoginState {
-    let config: SAConfiguration
+class SetupState<Value: SAWrappedValue>: LoginState {
+    let config: SAConfiguration<Value>
     
-    init(previousState: LoginState, config: SAConfiguration) {
+    init(previousState: LoginState, config: SAConfiguration<Value>) {
         self.config = config
         super.init(copyConstructor: previousState)
     }
@@ -63,10 +63,10 @@ struct GeneratedKeyPairs {
 
 }
 
-class Round0State: SetupState {
+class Round0State<Value: SAWrappedValue>: SetupState<Value> {
     let generatedKeyPairs: GeneratedKeyPairs
     
-    init(previousState: SetupState, generatedKeyPairs: GeneratedKeyPairs) {
+    init(previousState: SetupState<Value>, generatedKeyPairs: GeneratedKeyPairs) {
         self.generatedKeyPairs = generatedKeyPairs
         super.init(copyConstructor: previousState)
     }
@@ -86,13 +86,13 @@ struct PublicKeysOfUser {
     let s_publicKey: SAPubKeyCurve.KeyAgreement.PublicKey
 }
 
-class Round0FinishedState: Round0State {
+class Round0FinishedState<Value: SAWrappedValue>: Round0State<Value> {
     let otherUserPublicKeys: [PublicKeysOfUser]
     var U1: [UserID] {
         otherUserPublicKeys.map { $0.userID }
     }
     
-    init(previousState: Round0State, otherUserPublicKeys: [PublicKeysOfUser]) {
+    init(previousState: Round0State<Value>, otherUserPublicKeys: [PublicKeysOfUser]) {
         self.otherUserPublicKeys = otherUserPublicKeys
         super.init(copyConstructor: previousState)
     }
@@ -104,11 +104,11 @@ class Round0FinishedState: Round0State {
     }
 }
 
-class Round1State: Round0FinishedState {
+class Round1State<Value: SAWrappedValue>: Round0FinishedState<Value> {
     typealias B_U_Type = Data
     let b_u: B_U_Type
     
-    init(previousState: Round0FinishedState, b_u: B_U_Type) {
+    init(previousState: Round0FinishedState<Value>, b_u: B_U_Type) {
         self.b_u = b_u
         super.init(copyConstructor: previousState)
     }
@@ -130,17 +130,16 @@ struct EncryptedShare {
     var v: UserID
 }
 
-class Round1FinishedState: Round1State {
-    typealias EncryptedCiphertextsForMeType = Data
-    let encryptedCiphertextsForMe: [EncryptedCiphertextsForMeType]
+class Round1FinishedState<Value: SAWrappedValue>: Round1State<Value> {
+    let encryptedSharesForMe: [EncryptedShare]
     
-    init(previousState: Round1State, encryptedCiphertexts: [EncryptedCiphertextsForMeType]) {
-        self.encryptedCiphertextsForMe = encryptedCiphertexts
+    init(previousState: Round1State<Value>, encryptedShares: [EncryptedShare]) {
+        self.encryptedSharesForMe = encryptedShares
         super.init(copyConstructor: previousState)
     }
     
     init(copyConstructor other: Round1FinishedState) { // TODO: warum funktioniert hier convenience-init nicht?
-        self.encryptedCiphertextsForMe = other.encryptedCiphertextsForMe
+        self.encryptedSharesForMe = other.encryptedSharesForMe
         super.init(copyConstructor: other)
 //        self.init(previousState: other, encryptedCiphertexts: other.encryptedCiphertextsForMe)
     }

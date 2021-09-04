@@ -12,7 +12,7 @@ import SecureAggregationCore
 import ShamirSecretShare
 
 class SecureAggregationModel<Value: SAWrappedValue> {
-    private(set) var state: SecureAggregationRoundState = .waiting
+    private(set) var state: SecureAggregationRoundState<Value> = .waiting
     
     private let dispatchQueue = DispatchQueue(label: "SecureAggregationModel") // TODO: actually use
     
@@ -30,7 +30,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
         try state.advance(to: .login(LoginState(userID: userID)))
     }
         
-    func saveSetupData(config: SAConfiguration) throws {
+    func saveSetupData(config: SAConfiguration<Value>) throws {
         guard case .login(let loginState) = state else {
             throw SecureAggregationError.incorrectStateForMethod
         }
@@ -130,7 +130,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
     /// Checks if round0Finished state is not corrupted and round1 can start
     ///
     /// - Returns: SecureAggregationError if round1 cannot start, nil if Round0FinishedState is valid
-    func checkValidity(round0FinishedState: Round0FinishedState) -> SecureAggregationError? {
+    func checkValidity(round0FinishedState: Round0FinishedState<Value>) -> SecureAggregationError? {
         let otherUserPublicKeys = round0FinishedState.otherUserPublicKeys
 
         // Assert |U1| >= t
@@ -147,7 +147,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
     }
     
     /// Wraps, encrypts and wraps the secret shares again with UserIDs of pariticpating parties
-    func encryptAndWrapShares(currentState round0FinishedState: Round0FinishedState,
+    func encryptAndWrapShares(currentState round0FinishedState: Round0FinishedState<Value>,
                                           s_u_privateKeyShares: [Secret.Share],
                                           b_u_secretKeyShared: [Secret.Share],
                                           ownUserId: UserID) throws -> [EncryptedShare] {
