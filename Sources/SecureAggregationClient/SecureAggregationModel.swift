@@ -78,7 +78,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
         var encryptedShares: [EncryptedShare]
     }
     
-    struct EncryptedRound1ClientDataWrapper: Codable {
+    struct SharesWrapper: Codable {
         var u: UserID
         var v: UserID
         var s_uv_privateKeyShare: Secret.Share
@@ -164,7 +164,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
                                                                                sharedInfo: Data(),
                                                                                outputByteCount: 256)
             // encrypt
-            let dataToBeEncrypted = EncryptedRound1ClientDataWrapper(u: ownUserId,
+            let dataToBeEncrypted = SharesWrapper(u: ownUserId,
                                                                      v: otherUserID,
                                                                      s_uv_privateKeyShare: shares.s_uv_share,
                                                                      b_uv_Share: shares.b_uv_share)
