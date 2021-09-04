@@ -78,14 +78,13 @@ class SecureAggregationModel<Value: SAWrappedValue> {
         var encryptedShares: [EncryptedShare]
     }
     
-    struct EncryptedRound1ClientDataWrapper {
+    struct EncryptedRound1ClientDataWrapper: Codable {
         var u: UserID
         var v: UserID
         var s_uv_privateKeyShare: Secret.Share
         var b_uv_Share: Secret.Share
     }
-    
-    
+        
     func round1() throws -> Round1ClientData {
         guard case let .round0Finished(currentState) = state else {
             throw SecureAggregationError.incorrectStateForMethod
@@ -94,62 +93,89 @@ class SecureAggregationModel<Value: SAWrappedValue> {
         // u ^= self
         // v ^= other User
         
-        let otherUserPublicKeys = currentState.otherUserPublicKeys
-        // Assert |U1| >= t
-        guard Set(otherUserPublicKeys.map { $0.userID }).count >= currentState.config.threshold else {
-            throw SecureAggregationError.protocolAborted(reason: .tThresholdUndercut)
+        // MARK: Assertions
+        if let error = checkValidity(round0FinishedState: currentState) {
+            throw error
         }
-        // Assert all public key pairs are different
-        guard otherUserPublicKeys.allUnique(\.c_publicKey.rawRepresentation) &&
-                otherUserPublicKeys.allUnique(\.s_publicKey.rawRepresentation) else {
-            throw SecureAggregationError.protocolAborted(reason: .securityViolation(description: "Public keys from Round0 were not distinct"))
-        }
-        // Sample b_u
+        
+        // MARK: Sample b_u
         let b_u_privateKey = SAPubKeyCurve.KeyAgreement.PrivateKey()
-        // Generate t-out-of-|U1| shares of s_u_SK and b_u
+        
+        // MARK: Generate t-out-of-|U1| shares of s_u_SK and b_u
         // common parameters for both sharing-processes:
         let threshold = currentState.config.threshold
         let numberOfShares = currentState.U1.count
         // create shares:
-        let s_u_privateKeyShamirSecretShareProducer = try Secret(data: currentState.generatedKeyPairs.s_privateKey.rawRepresentation,
-                                                   threshold: threshold,
-                                                   shares: numberOfShares)
-        let s_u_privateKeyShares = try s_u_privateKeyShamirSecretShareProducer.split()
-        let b_u_privateKeyShamirSecretShareProducer = try Secret(data: b_u_privateKey.rawRepresentation,
-                                                          threshold: threshold,
-                                                          shares: numberOfShares)
-        let b_u_secretKeyShared = try b_u_privateKeyShamirSecretShareProducer.split()
-        // encrypt s_uv_SK, b_uv, u.id, v.id with shared key of u & v => e_uv
+        let s_u_privateKeyShares = try createShares(for: currentState.generatedKeyPairs.s_privateKey.rawRepresentation, threshold: threshold, numberOfShares: numberOfShares)
+        let b_u_secretKeyShared = try  createShares(for: b_u_privateKey.rawRepresentation, threshold: threshold, numberOfShares: numberOfShares)
+        
+        // MARK: encrypt s_uv_SK, b_uv, u.id, v.id with shared key of u & v => e_uv
         let ownUserId = currentState.userID
-        let encryptedAndWrappedSharesReadyForTransport = try zip(otherUserPublicKeys, zip(s_u_privateKeyShares, b_u_secretKeyShared)).map {
+        let encryptedAndWrappedSharesReadyForTransport = try encryptAndWrapShares(currentState: currentState,
+                                                                              s_u_privateKeyShares: s_u_privateKeyShares,
+                                                                              b_u_secretKeyShared: b_u_secretKeyShared,
+                                                                              ownUserId: ownUserId)
+        // MARK: Save all messages received & values generated
+        #warning("TODO: save all messages received & values generated (where later needed)")
+        
+        // return
+        return Round1ClientData(encryptedShares: encryptedAndWrappedSharesReadyForTransport)
+    }
+    
+    /// Creates t-out-of-n shares
+    func createShares(for data: Data, threshold: Int, numberOfShares: Int) throws -> [Secret.Share] {
+        return try Secret(data: data, threshold: threshold, shares: numberOfShares).split()
+    }
+    
+    /// Checks if round0Finished state is not corrupted and round1 can start
+    ///
+    /// - Returns: SecureAggregationError if round1 cannot start, nil if Round0FinishedState is valid
+    func checkValidity(round0FinishedState: Round0FinishedState) -> SecureAggregationError? {
+        let otherUserPublicKeys = round0FinishedState.otherUserPublicKeys
+
+        // Assert |U1| >= t
+        guard Set(otherUserPublicKeys.map { $0.userID }).count >= round0FinishedState.config.threshold else {
+            return SecureAggregationError.protocolAborted(reason: .tThresholdUndercut)
+        }
+        // Assert all public key pairs are different
+        guard otherUserPublicKeys.allUnique(\.c_publicKey.rawRepresentation) &&
+                otherUserPublicKeys.allUnique(\.s_publicKey.rawRepresentation) else {
+            return SecureAggregationError.protocolAborted(reason: .securityViolation(description: "Public keys from Round0 were not distinct"))
+        }
+        // Everything ok => return nil
+        return nil
+    }
+    
+    /// Wraps, encrypts and wraps the secret shares again with UserIDs of pariticpating parties
+    func encryptAndWrapShares(currentState round0FinishedState: Round0FinishedState,
+                                          s_u_privateKeyShares: [Secret.Share],
+                                          b_u_secretKeyShared: [Secret.Share],
+                                          ownUserId: UserID) throws -> [EncryptedShare] {
+        return try zip(round0FinishedState.otherUserPublicKeys, zip(s_u_privateKeyShares, b_u_secretKeyShared)).map {
             (otherUserPublicKeyWrapper: PublicKeysOfUser,
              shares:(s_uv_share: Secret.Share, b_uv_share: Secret.Share)) -> EncryptedShare in
             // Calculate key agreement with user v
             let otherUserID = otherUserPublicKeyWrapper.userID
             let c_v_publicKey = otherUserPublicKeyWrapper.c_publicKey
-            let c_u_privateKey = currentState.generatedKeyPairs.c_privateKey
+            let c_u_privateKey = round0FinishedState.generatedKeyPairs.c_privateKey
             let sharedSecretWithV = try c_u_privateKey.sharedSecretFromKeyAgreement(with: c_v_publicKey)
             let symmectricKeyWithV = sharedSecretWithV.hkdfDerivedSymmetricKey(using: SA_HKDF_HashFunction.self,
-                                                                               salt: currentState.config.salt,
+                                                                               salt: round0FinishedState.config.salt,
                                                                                sharedInfo: Data(),
                                                                                outputByteCount: 256)
-            var dataToBeEncrypted = EncryptedRound1ClientDataWrapper(u: ownUserId,
+            // encrypt
+            let dataToBeEncrypted = EncryptedRound1ClientDataWrapper(u: ownUserId,
                                                                      v: otherUserID,
                                                                      s_uv_privateKeyShare: shares.s_uv_share,
                                                                      b_uv_Share: shares.b_uv_share)
-            #warning("TODO: mit JSON-endcoding ersetzen")
-            let data = withUnsafeBytes(of: &dataToBeEncrypted) { Data($0) } // TODO: richtig so?
+            let data = try JSONEncoder().encode(dataToBeEncrypted)
             let encryptedData = try SASymmetricCipher.seal(data, using: symmectricKeyWithV)
             return EncryptedShare(e_uv: encryptedData,
-                                                    u: ownUserId,
-                                                    v: otherUserID)
+                                  u: ownUserId,
+                                  v: otherUserID)
         }
-        // Save all messages received & values generated
-        #warning("TODO: save all messages received & values generated (where later needed)")
-        
-        // "Send" e_uu to the server
-        return Round1ClientData(encryptedShares: encryptedAndWrappedSharesReadyForTransport)
     }
+
     
     // MARK: Server -> Client
     struct Round1ServerData {
