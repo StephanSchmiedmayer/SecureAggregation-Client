@@ -24,23 +24,6 @@ enum SecureAggregationRoundState {
     case round4(_:Round4State)
 }
 
-/// Common requirements of every state the Client has
-class ClientState {
-    let userID: UserID
-    let config: SAConfiguration
-    
-    init(userID: UserID, config: SAConfiguration) {
-        self.userID = userID
-        self.config = config
-    }
-    
-    /// Copy constructs ClientState from another Client state
-    init(copyConstructor: ClientState) {
-        self.userID = copyConstructor.userID
-        self.config = copyConstructor.config
-    }
-}
-
 class LoginState {
     let userID: UserID
     

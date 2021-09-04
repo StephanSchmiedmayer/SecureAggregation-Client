@@ -7,6 +7,9 @@
 
 import Foundation
 
-class Constant {
-    
+struct Const {
+    // MARK: - Networking
+    static let urlSessionInstance = URLSession.shared
+    static let serverBaseURL = URL(string: "TODO") // TODO
+    static let secureAggregationBaseURL = URL(string: "TODO", relativeTo: serverBaseURL)
 }
