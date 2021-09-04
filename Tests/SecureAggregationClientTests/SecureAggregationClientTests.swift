@@ -1,5 +1,4 @@
     import XCTest
-    import SecureAggregationClient
     @testable import SecureAggregationClient
 
     final class SecureAggregationClientTests: XCTestCase {
