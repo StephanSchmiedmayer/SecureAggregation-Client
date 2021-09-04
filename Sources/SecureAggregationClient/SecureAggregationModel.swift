@@ -184,15 +184,15 @@ class SecureAggregationModel<Value: SAWrappedValue> {
     
     // MARK: Server -> Client
     struct Round1ServerData {
-        let encryptedServerMessagesForMe: [Round1ClientData]
+        let encryptedServerMessagesForMe: [EncryptedShare]
     }
     
     func processRound1Data(_ serverMessage: Round1ServerData) throws {
         guard case .round1(let round1State) = state else {
             throw SecureAggregationError.incorrectStateForMethod
         }
-        #warning("check validitiy of Server data")
-//        try state.advance(to: .round1Finished(Round1FinishedState(previousState: round1State, encryptedCiphertexts: serverMessage.encryptedServerMessagesForMe)))
+        try state.advance(to: .round1Finished(Round1FinishedState(previousState: round1State, encryptedShares: serverMessage.encryptedServerMessagesForMe)))
+    }
     }
 
 }
