@@ -134,7 +134,8 @@ class SecureAggregationModel<Value: SAWrappedValue> {
         let otherUserPublicKeys = round0FinishedState.otherUserPublicKeys
 
         // Assert |U1| >= t
-        guard Set(otherUserPublicKeys.map { $0.userID }).count >= round0FinishedState.config.threshold else {
+        guard uniqueRemainingUsersOverThreshold(userIDs: otherUserPublicKeys.map { $0.userID },
+                                                currentState: round0FinishedState) else {
             return SecureAggregationError.protocolAborted(reason: .tThresholdUndercut)
         }
         // Assert all public key pairs are different
@@ -144,6 +145,10 @@ class SecureAggregationModel<Value: SAWrappedValue> {
         }
         // Everything ok => return nil
         return nil
+    }
+    
+    func uniqueRemainingUsersOverThreshold(userIDs: [UserID], currentState: SetupState<Value>) -> Bool {
+        return Set(userIDs).count >= currentState.config.threshold
     }
     
     /// Wraps, encrypts and wraps the secret shares again with UserIDs of pariticpating parties
