@@ -25,14 +25,14 @@ enum SecureAggregationRoundState<Value: SAWrappedValue> {
 }
 
 class LoginState {
-    let userID: UserID
+    let ownUserID: UserID
     
     init(userID: UserID) {
-        self.userID = userID
+        self.ownUserID = userID
     }
     
     init(copyConstructor other: LoginState) {
-        self.userID = other.userID
+        self.ownUserID = other.ownUserID
     }
 }
 

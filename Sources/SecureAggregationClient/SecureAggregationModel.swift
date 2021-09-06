@@ -53,7 +53,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
         let round0State = Round0State(previousState: setupState, generatedKeyPairs: generatedKeys)
         try state.advance(to: .round0(round0State))
         // send public keys to server
-        return Round0ClientData(publicKeyInformation: PublicKeysOfUser(userID: round0State.userID, c_publicKey: round0State.generatedKeyPairs.c_publicKey, s_publicKey: round0State.generatedKeyPairs.s_publicKey))
+        return Round0ClientData(publicKeyInformation: PublicKeysOfUser(userID: round0State.ownUserID, c_publicKey: round0State.generatedKeyPairs.c_publicKey, s_publicKey: round0State.generatedKeyPairs.s_publicKey))
     }
     
     // MARK: Server -> Client
@@ -66,7 +66,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
             throw SecureAggregationError.incorrectStateForMethod
         }
         let otherUserPublicKeys = serverMessage.collectedData.filter { publicKeysOfUser in
-            publicKeysOfUser.userID != round0State.userID
+            publicKeysOfUser.userID != round0State.ownUserID
         }
         
         try state.advance(to: .round0Finished(Round0FinishedState(previousState: round0State, otherUserPublicKeys: otherUserPublicKeys)))
@@ -110,7 +110,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
         let b_u_secretKeyShared = try  createShares(for: b_u_privateKey.rawRepresentation, threshold: threshold, numberOfShares: numberOfShares)
         
         // MARK: encrypt s_uv_SK, b_uv, u.id, v.id with shared key of u & v => e_uv
-        let ownUserId = currentState.userID
+        let ownUserId = currentState.ownUserID
         let encryptedAndWrappedSharesReadyForTransport = try encryptAndWrapShares(currentState: currentState,
                                                                               s_u_privateKeyShares: s_u_privateKeyShares,
                                                                               b_u_secretKeyShared: b_u_secretKeyShared,
