@@ -18,10 +18,10 @@ enum SecureAggregationRoundState<Value: SAWrappedValue> {
     case round0Finished(_: Round0FinishedState<Value>)
     case round1(_: Round1State<Value>)
     case round1Finished(_: Round1FinishedState<Value>)
-    case round2(_: Round2State)
-    case round2Finished(_: Round2FinishedState)
+    case round2(_: Round2State<Value>)
+    case round2Finished(_: Round2FinishedState<Value>)
 //    case round3 (all red parts skipped for now)
-    case round4(_:Round4State)
+    case round4(_:Round4State<Value>)
 }
 
 class LoginState {
@@ -145,14 +145,40 @@ class Round1FinishedState<Value: SAWrappedValue>: Round1State<Value> {
     }
 }
 
-class Round2State {
+class Round2State<Value: SAWrappedValue>: Round1FinishedState<Value> {
+    init(previousState: Round1FinishedState<Value>) {
+        super.init(copyConstructor: previousState)
+    }
     
+    init(copyConstructor other: Round2State) {
+        super.init(copyConstructor: other)
+    }
 }
 
-class Round2FinishedState {
+class Round2FinishedState<Value: SAWrappedValue>: Round2State<Value> {
+    let round2RemainingUsers: [UserID]
     
+    var U3: [UserID] {
+        round2RemainingUsers
+    }
+    
+    init(previousState: Round2State<Value>, remainingUsers: [UserID]) {
+        self.round2RemainingUsers = remainingUsers
+        super.init(copyConstructor: previousState)
+    }
+    
+    init(copyConstructor other: Round2FinishedState) {
+        self.round2RemainingUsers = other.round2RemainingUsers
+        super.init(copyConstructor: other)
+    }
 }
 
-class Round4State {
+class Round4State<Value: SAWrappedValue>: Round2FinishedState<Value> {
+    init(previousState: Round2FinishedState<Value>) {
+        super.init(copyConstructor: previousState)
+    }
     
+    init(copyConstructor other: Round4State) {
+        super.init(copyConstructor: other)
+    }
 }
