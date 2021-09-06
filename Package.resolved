@@ -60,7 +60,7 @@
         "repositoryURL": "/Users/stephan/developer/bachelorarbeit/secureAggregationCore",
         "state": {
           "branch": "master",
-          "revision": "0bf4ee9947c19d04b86ac3d018a2824c35e50471",
+          "revision": "fbb3cba0c2193bfbcdd6cb120e51951e108cb00f",
           "version": null
         }
       },
@@ -159,8 +159,8 @@
         "repositoryURL": "https://github.com/vapor/websocket-kit.git",
         "state": {
           "branch": null,
-          "revision": "d7537b787d37f3877e36b5f1e7cb910f7c401836",
-          "version": "2.1.4"
+          "revision": "b1c4df8f6c848c2e977726903bbe6578eed723ad",
+          "version": "2.2.0"
         }
       }
     ]
