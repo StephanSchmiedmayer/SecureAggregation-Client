@@ -61,7 +61,6 @@ struct GeneratedKeyPairs {
     var s_publicKey: SAPubKeyCurve.KeyAgreement.PublicKey {
         s_privateKey.publicKey
     }
-
 }
 
 class Round0State<Value: SAWrappedValue>: SetupState<Value> {
