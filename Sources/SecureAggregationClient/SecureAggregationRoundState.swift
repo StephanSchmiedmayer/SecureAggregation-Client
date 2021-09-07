@@ -79,12 +79,12 @@ class Round0State<Value: SAWrappedValue>: SetupState<Value> {
 }
 
 class Round0FinishedState<Value: SAWrappedValue>: Round0State<Value> {
-    let otherUserPublicKeys: [Round0.PublicKeysOfUser]
+    let otherUserPublicKeys: [Model.Round0.PublicKeysOfUser]
     var U1: [UserID] {
         otherUserPublicKeys.map { $0.userID }
     }
     
-    init(previousState: Round0State<Value>, otherUserPublicKeys: [Round0.PublicKeysOfUser]) {
+    init(previousState: Round0State<Value>, otherUserPublicKeys: [Model.Round0.PublicKeysOfUser]) {
         self.otherUserPublicKeys = otherUserPublicKeys
         super.init(copyConstructor: previousState)
     }
@@ -112,23 +112,13 @@ class Round1State<Value: SAWrappedValue>: Round0FinishedState<Value> {
     }
 }
 
-/// Encrypted share from user `u` to user `v`
-struct EncryptedShare {
-    /// Encrypted shares (`EncryptedRound1ClientDataWrapper`)
-    var e_uv: SASymmetricCipher.SealedBox
-    /// User that encrypted the shares
-    var u: UserID
-    /// Destination for the encrypted shares
-    var v: UserID
-}
-
 class Round1FinishedState<Value: SAWrappedValue>: Round1State<Value> {
-    let encryptedSharesForMe: [EncryptedShare]
+    let encryptedSharesForMe: [Model.EncryptedShare]
     var U2: [UserID] {
         encryptedSharesForMe.map { $0.u }
     }
     
-    init(previousState: Round1State<Value>, encryptedShares: [EncryptedShare]) {
+    init(previousState: Round1State<Value>, encryptedShares: [Model.EncryptedShare]) {
         self.encryptedSharesForMe = encryptedShares
         super.init(copyConstructor: previousState)
     }

@@ -39,9 +39,8 @@ class SecureAggregationModel<Value: SAWrappedValue> {
     
     // MARK: - Round 0
     // MARK: Client -> Server
-    
     /// Get client message for round 0
-    func round0() throws -> Round0.ClientData  {
+    func round0() throws -> Model.Round0.ClientData  {
         guard case .setup(let setupState) = state else {
             throw SecureAggregationError.incorrectStateForMethod
         }
@@ -50,15 +49,11 @@ class SecureAggregationModel<Value: SAWrappedValue> {
         let round0State = Round0State(previousState: setupState, generatedKeyPairs: generatedKeys)
         try state.advance(to: .round0(round0State))
         // send public keys to server
-        return Round0.ClientData(publicKeyInformation: Round0.PublicKeysOfUser(userID: round0State.ownUserID, c_publicKey: round0State.generatedKeyPairs.c_publicKey, s_publicKey: round0State.generatedKeyPairs.s_publicKey))
+        return Model.Round0.ClientData(publicKeyInformation: Model.Round0.PublicKeysOfUser(userID: round0State.ownUserID, c_publicKey: round0State.generatedKeyPairs.c_publicKey, s_publicKey: round0State.generatedKeyPairs.s_publicKey))
     }
     
     // MARK: Server -> Client
-    struct Round0ServerData {
-        let collectedData: [Round0.PublicKeysOfUser]
-    }
-    
-    func processRound0Data(_ serverMessage: Round0ServerData) throws {
+    func processRound0Data(_ serverMessage: Model.Round0.ServerData) throws {
         guard case .round0(let round0State) = state else {
             throw SecureAggregationError.incorrectStateForMethod
         }
@@ -72,7 +67,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
     // MARK: - Round 1
     // MARK: Client -> Server
     struct Round1ClientData {        
-        var encryptedShares: [EncryptedShare]
+        var encryptedShares: [Model.EncryptedShare]
     }
     
     struct SharesWrapper: Codable {
@@ -153,10 +148,10 @@ class SecureAggregationModel<Value: SAWrappedValue> {
     func encryptAndWrapShares(currentState round0FinishedState: Round0FinishedState<Value>,
                                           s_u_privateKeyShares: [Secret.Share],
                                           b_u_secretKeyShared: [Secret.Share],
-                                          ownUserId: UserID) throws -> [EncryptedShare] {
+                                          ownUserId: UserID) throws -> [Model.EncryptedShare] {
         return try zip(round0FinishedState.otherUserPublicKeys, zip(s_u_privateKeyShares, b_u_secretKeyShared)).map {
-            (otherUserPublicKeyWrapper: Round0.PublicKeysOfUser,
-             shares:(s_uv_share: Secret.Share, b_uv_share: Secret.Share)) -> EncryptedShare in
+            (otherUserPublicKeyWrapper: Model.Round0.PublicKeysOfUser,
+             shares:(s_uv_share: Secret.Share, b_uv_share: Secret.Share)) -> Model.EncryptedShare in
             // Calculate key agreement with user v
             let otherUserID = otherUserPublicKeyWrapper.userID
             let c_v_publicKey = otherUserPublicKeyWrapper.c_publicKey
@@ -173,7 +168,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
                                                   b_uv_Share: shares.b_uv_share)
             let data = try JSONEncoder().encode(dataToBeEncrypted)
             let encryptedData = try SASymmetricCipher.seal(data, using: symmectricKeyWithV)
-            return EncryptedShare(e_uv: encryptedData,
+            return Model.EncryptedShare(e_uv: encryptedData,
                                   u: ownUserId,
                                   v: otherUserID)
         }
@@ -182,7 +177,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
     
     // MARK: Server -> Client
     struct Round1ServerData {
-        let encryptedServerMessagesForMe: [EncryptedShare]
+        let encryptedServerMessagesForMe: [Model.EncryptedShare]
     }
     
     func processRound1Data(_ serverMessage: Round1ServerData) throws {
