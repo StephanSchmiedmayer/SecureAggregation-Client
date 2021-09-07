@@ -168,7 +168,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
             let symmectricKeyWithV = sharedSecretWithV.hkdfDerivedSymmetricKey(using: SA_HKDF_HashFunction.self,
                                                                                salt: round0FinishedState.config.salt,
                                                                                sharedInfo: Data(),
-                                                                               outputByteCount: 256)
+                                                                               outputByteCount: SASymmetricCipherKeyBitCount)
             // encrypt
             let dataToBeEncrypted = SharesWrapper(u: ownUserId,
                                                   v: otherUserID,
