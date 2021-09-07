@@ -117,7 +117,8 @@ class SecureAggregationModel<Value: SAWrappedValue> {
                                                                               ownUserId: ownUserId)
         // MARK: Save all messages received & values generated
         #warning("TODO: save all messages received & values generated (where later needed)")
-        try state.advance(to: .round1(Round1State(previousState: currentState, b_u: Data())))
+        try state.advance(to: .round1(Round1State(previousState: currentState,
+                                                  b_u_privateKey: b_u_privateKey)))
         // return
         return Round1ClientData(encryptedShares: encryptedAndWrappedSharesReadyForTransport)
     }
@@ -192,6 +193,59 @@ class SecureAggregationModel<Value: SAWrappedValue> {
             throw SecureAggregationError.incorrectStateForMethod
         }
         try state.advance(to: .round1Finished(Round1FinishedState(previousState: round1State, encryptedShares: serverMessage.encryptedServerMessagesForMe)))
+    }
+    
+    // MARK: - Round 2
+    // MARK: Client -> Server
+    struct Round2ClientData {
+        let value: Value
+    }
+    
+    func round2() throws -> Round2ClientData {
+        guard case .round1Finished(let currentState) = state else {
+            throw SecureAggregationError.incorrectStateForMethod
+        }
+        let modulus = currentState.config.modulus
+        // MARK: Assertions
+        guard uniqueRemainingUsersOverThreshold(userIDs: currentState.encryptedSharesForMe.map { $0.u }, currentState: currentState) else {
+            throw SecureAggregationError.protocolAborted(reason: .tThresholdUndercut)
+        }
+        // MARK: Compute p_uv
+        // calculate shared secret with all remaining Users
+        let maskWithOtherUsers = try currentState.otherUserPublicKeys.filter { otherUserPublicKeysWrapper in
+            // Only remaining Users
+            currentState.encryptedSharesForMe.contains { sharesWrapper in
+                otherUserPublicKeysWrapper.userID == sharesWrapper.u
+            }
+        }.map { otherUserPublicKeysWrapper in
+            (try currentState.generatedKeyPairs.s_privateKey.sharedSecretFromKeyAgreement(with: otherUserPublicKeysWrapper.s_publicKey), otherUserPublicKeysWrapper.userID)
+        }.map { (sharedSecret, otherUserID) in
+            // Expand shared secret s_uv into mask
+            Value.mask(forSeed: sharedSecret, mod: modulus).cancelling(ownID: currentState.ownUserID, otherID: otherUserID)
+        }.reduce(Value.zero) { aggregate, value in
+            aggregate.add(value, mod: modulus)
+        }
+        // Expand secret b_u into mask
+        let b_u_sharedSecret = try currentState.b_u_privateKey.sharedSecretFromKeyAgreement(with: currentState.b_u_privateKey.publicKey)
+        let ownMask = Value.mask(forSeed: b_u_sharedSecret, mod: currentState.config.modulus)
+        // Add all masks to data
+        let maskedValue = value
+            .add(ownMask, mod: modulus)
+            .add(maskWithOtherUsers, mod: modulus)
+        try state.advance(to: .round2(Round2State<Value>(previousState: currentState)))
+        return Round2ClientData(value: maskedValue)
+    }
+    
+    // MARK: Server -> Client
+    struct Round2ServerData {
+        let remainingUsers: [UserID]
+    }
+    
+    func processRound2Data(_ serverMessage: Round2ServerData) throws {
+        guard case .round2(let round2State) = state else {
+            throw SecureAggregationError.incorrectStateForMethod
+        }
+        try state.advance(to: .round2Finished(Round2FinishedState<Value>(previousState: round2State, remainingUsers: serverMessage.remainingUsers)))
     }
     }
 

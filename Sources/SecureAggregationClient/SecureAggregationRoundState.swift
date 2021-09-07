@@ -105,16 +105,16 @@ class Round0FinishedState<Value: SAWrappedValue>: Round0State<Value> {
 }
 
 class Round1State<Value: SAWrappedValue>: Round0FinishedState<Value> {
-    typealias B_U_Type = Data
-    let b_u: B_U_Type
+    let b_u_privateKey: SAPubKeyCurve.KeyAgreement.PrivateKey
     
-    init(previousState: Round0FinishedState<Value>, b_u: B_U_Type) {
-        self.b_u = b_u
+    init(previousState: Round0FinishedState<Value>,
+         b_u_privateKey: SAPubKeyCurve.KeyAgreement.PrivateKey) {
+        self.b_u_privateKey = b_u_privateKey
         super.init(copyConstructor: previousState)
     }
     
     init(copyConstructor other: Round1State) { // TODO: warum funktioniert hier convenience-init nicht?
-        self.b_u = other.b_u
+        self.b_u_privateKey = other.b_u_privateKey
         super.init(copyConstructor: other)
         // self.init(previousState: other, b_u: other.b_u)
     }
@@ -132,6 +132,9 @@ struct EncryptedShare {
 
 class Round1FinishedState<Value: SAWrappedValue>: Round1State<Value> {
     let encryptedSharesForMe: [EncryptedShare]
+    var U2: [UserID] {
+        encryptedSharesForMe.map { $0.u }
+    }
     
     init(previousState: Round1State<Value>, encryptedShares: [EncryptedShare]) {
         self.encryptedSharesForMe = encryptedShares
