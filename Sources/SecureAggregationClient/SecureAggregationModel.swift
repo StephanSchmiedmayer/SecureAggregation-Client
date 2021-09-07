@@ -66,18 +66,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
     
     // MARK: - Round 1
     // MARK: Client -> Server
-    struct Round1ClientData {        
-        var encryptedShares: [Model.EncryptedShare]
-    }
-    
-    struct SharesWrapper: Codable {
-        var u: UserID
-        var v: UserID
-        var s_uv_privateKeyShare: Secret.Share
-        var b_uv_Share: Secret.Share
-    }
-        
-    func round1() throws -> Round1ClientData {
+    func round1() throws -> Model.Round1.ClientData {
         guard case let .round0Finished(currentState) = state else {
             throw SecureAggregationError.incorrectStateForMethod
         }
@@ -112,7 +101,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
         try state.advance(to: .round1(Round1State(previousState: currentState,
                                                   b_u_privateKey: b_u_privateKey)))
         // return
-        return Round1ClientData(encryptedShares: encryptedAndWrappedSharesReadyForTransport)
+        return Model.Round1.ClientData(encryptedShares: encryptedAndWrappedSharesReadyForTransport)
     }
     
     /// Creates t-out-of-n shares
@@ -162,7 +151,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
                                                                                sharedInfo: Data(),
                                                                                outputByteCount: SASymmetricCipherKeyBitCount)
             // encrypt
-            let dataToBeEncrypted = SharesWrapper(u: ownUserId,
+            let dataToBeEncrypted = Model.SharesWrapper(u: ownUserId,
                                                   v: otherUserID,
                                                   s_uv_privateKeyShare: shares.s_uv_share,
                                                   b_uv_Share: shares.b_uv_share)
@@ -176,11 +165,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
 
     
     // MARK: Server -> Client
-    struct Round1ServerData {
-        let encryptedServerMessagesForMe: [Model.EncryptedShare]
-    }
-    
-    func processRound1Data(_ serverMessage: Round1ServerData) throws {
+    func processRound1Data(_ serverMessage: Model.Round1.ServerData) throws {
         guard case .round1(let round1State) = state else {
             throw SecureAggregationError.incorrectStateForMethod
         }
@@ -189,11 +174,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
     
     // MARK: - Round 2
     // MARK: Client -> Server
-    struct Round2ClientData {
-        let value: Value
-    }
-    
-    func round2() throws -> Round2ClientData {
+    func round2() throws -> Model.Round2.ClientData<Value> {
         guard case .round1Finished(let currentState) = state else {
             throw SecureAggregationError.incorrectStateForMethod
         }
@@ -225,15 +206,11 @@ class SecureAggregationModel<Value: SAWrappedValue> {
             .add(ownMask, mod: modulus)
             .add(maskWithOtherUsers, mod: modulus)
         try state.advance(to: .round2(Round2State<Value>(previousState: currentState)))
-        return Round2ClientData(value: maskedValue)
+        return Model.Round2.ClientData(value: maskedValue)
     }
     
     // MARK: Server -> Client
-    struct Round2ServerData {
-        let remainingUsers: [UserID]
-    }
-    
-    func processRound2Data(_ serverMessage: Round2ServerData) throws {
+    func processRound2Data(_ serverMessage: Model.Round2.ServerData) throws {
         guard case .round2(let round2State) = state else {
             throw SecureAggregationError.incorrectStateForMethod
         }
@@ -242,41 +219,8 @@ class SecureAggregationModel<Value: SAWrappedValue> {
     
     // MARK: - Round4
     // MARK: Client -> Server
-    
-    struct AdressedShare: Codable {
-        var origin: UserID
-        var destination: UserID
-        var share: Secret.Share
-    }
-    
-    struct Round4ClientData {
-        var s_uv: [AdressedShare]
-        var b_uv: [AdressedShare]
-    }
-    
-    class Round4ClientDataBuilder {
-        private(set) var s_uv: [AdressedShare]
-        private(set) var b_uv: [AdressedShare]
         
-        init() {
-            s_uv = []
-            b_uv = []
-        }
-
-        func add_s_uv(_ share: AdressedShare) {
-            s_uv.append(share)
-        }
-        
-        func add_b_uv(_ share: AdressedShare) {
-            b_uv.append(share)
-        }
-        
-        func finish() -> Round4ClientData {
-            return Round4ClientData(s_uv: s_uv, b_uv: b_uv)
-        }
-    }
-    
-    func round4() throws -> Round4ClientData {
+    func round4() throws -> Model.Round4.ClientData {
         guard case .round2Finished(let currentState) = state else {
             throw SecureAggregationError.incorrectStateForMethod
         }
@@ -291,7 +235,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
         }
         
         // MARK: Decrypt ciphertexts
-        let decryptedShares = try currentState.encryptedSharesForMe.map { encryptedShare -> SharesWrapper in
+        let decryptedShares = try currentState.encryptedSharesForMe.map { encryptedShare -> Model.SharesWrapper in
             // Key aggrement
             let optionalDecryptionKeys = currentState.otherUserPublicKeys.first { publicKeysOfUser in
                 publicKeysOfUser.userID == encryptedShare.u
@@ -303,29 +247,25 @@ class SecureAggregationModel<Value: SAWrappedValue> {
             let sharedSecret = try currentState.generatedKeyPairs.c_privateKey.sharedSecretFromKeyAgreement(with: decryptionPublicKey)
             let decryptionKey = sharedSecret.hkdfDerivedSymmetricKey(using: SA_HKDF_HashFunction.self, salt: currentState.config.salt, sharedInfo: Data(), outputByteCount: SASymmetricCipherKeyBitCount)
             let decryptedData = try SASymmetricCipher.open(encryptedShare.e_uv, using: decryptionKey)
-            let decryptedWrapper = try JSONDecoder().decode(SharesWrapper.self, from: decryptedData)
+            let decryptedWrapper = try JSONDecoder().decode(Model.SharesWrapper.self, from: decryptedData)
             // Assert
             guard decryptedWrapper.u == encryptedShare.u && decryptedWrapper.v == encryptedShare.v else {
                 throw SecureAggregationError.protocolAborted(reason: .securityViolation(description: "Decrypted Shares wrong routing information"))
             }
             return decryptedWrapper
         }
-        return decryptedShares.reduce(Round4ClientDataBuilder()) { aggregate, newValue in
+        return decryptedShares.reduce(Model.Round4.ClientDataBuilder()) { aggregate, newValue in
             if currentState.U3.contains(newValue.u) {
-                aggregate.add_b_uv(AdressedShare(origin: newValue.u, destination: newValue.v, share: newValue.b_uv_Share))
+                aggregate.add_b_uv(Model.AdressedShare(origin: newValue.u, destination: newValue.v, share: newValue.b_uv_Share))
             } else if (Set(currentState.U3).subtracting(currentState.U2)).contains(newValue.u) {
-                aggregate.add_s_uv(AdressedShare(origin: newValue.u, destination: newValue.v, share: newValue.s_uv_privateKeyShare))
+                aggregate.add_s_uv(Model.AdressedShare(origin: newValue.u, destination: newValue.v, share: newValue.s_uv_privateKeyShare))
             }
             return aggregate
         }.finish()
     }
 
     // MARK: Server -> Client
-    struct Round4ServerData {
-        let value: Value
-    }
-    
-    func processRound4Data(_ serverMessage: Round4ServerData) throws {
+    func processRound4Data(_ serverMessage: Model.Round4.ServerData<Value>) throws {
         guard case .round4(_) = state else {
             throw SecureAggregationError.incorrectStateForMethod
         }
