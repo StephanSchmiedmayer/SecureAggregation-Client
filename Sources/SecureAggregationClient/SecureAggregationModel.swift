@@ -39,12 +39,9 @@ class SecureAggregationModel<Value: SAWrappedValue> {
     
     // MARK: - Round 0
     // MARK: Client -> Server
-    struct Round0ClientData {
-        let publicKeyInformation: PublicKeysOfUser
-    }
     
     /// Get client message for round 0
-    func round0() throws -> Round0ClientData  {
+    func round0() throws -> Round0.ClientData  {
         guard case .setup(let setupState) = state else {
             throw SecureAggregationError.incorrectStateForMethod
         }
@@ -53,12 +50,12 @@ class SecureAggregationModel<Value: SAWrappedValue> {
         let round0State = Round0State(previousState: setupState, generatedKeyPairs: generatedKeys)
         try state.advance(to: .round0(round0State))
         // send public keys to server
-        return Round0ClientData(publicKeyInformation: PublicKeysOfUser(userID: round0State.ownUserID, c_publicKey: round0State.generatedKeyPairs.c_publicKey, s_publicKey: round0State.generatedKeyPairs.s_publicKey))
+        return Round0.ClientData(publicKeyInformation: Round0.PublicKeysOfUser(userID: round0State.ownUserID, c_publicKey: round0State.generatedKeyPairs.c_publicKey, s_publicKey: round0State.generatedKeyPairs.s_publicKey))
     }
     
     // MARK: Server -> Client
     struct Round0ServerData {
-        let collectedData: [PublicKeysOfUser]
+        let collectedData: [Round0.PublicKeysOfUser]
     }
     
     func processRound0Data(_ serverMessage: Round0ServerData) throws {
@@ -158,7 +155,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
                                           b_u_secretKeyShared: [Secret.Share],
                                           ownUserId: UserID) throws -> [EncryptedShare] {
         return try zip(round0FinishedState.otherUserPublicKeys, zip(s_u_privateKeyShares, b_u_secretKeyShared)).map {
-            (otherUserPublicKeyWrapper: PublicKeysOfUser,
+            (otherUserPublicKeyWrapper: Round0.PublicKeysOfUser,
              shares:(s_uv_share: Secret.Share, b_uv_share: Secret.Share)) -> EncryptedShare in
             // Calculate key agreement with user v
             let otherUserID = otherUserPublicKeyWrapper.userID

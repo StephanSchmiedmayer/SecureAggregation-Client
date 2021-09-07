@@ -78,21 +78,13 @@ class Round0State<Value: SAWrappedValue>: SetupState<Value> {
     }
 }
 
-/// Public keys of the user with `UserID` `userID`
-struct PublicKeysOfUser {
-    /// User who ones the private keys corresponding to the public keys
-    let userID: UserID
-    let c_publicKey: SAPubKeyCurve.KeyAgreement.PublicKey
-    let s_publicKey: SAPubKeyCurve.KeyAgreement.PublicKey
-}
-
 class Round0FinishedState<Value: SAWrappedValue>: Round0State<Value> {
-    let otherUserPublicKeys: [PublicKeysOfUser]
+    let otherUserPublicKeys: [Round0.PublicKeysOfUser]
     var U1: [UserID] {
         otherUserPublicKeys.map { $0.userID }
     }
     
-    init(previousState: Round0State<Value>, otherUserPublicKeys: [PublicKeysOfUser]) {
+    init(previousState: Round0State<Value>, otherUserPublicKeys: [Round0.PublicKeysOfUser]) {
         self.otherUserPublicKeys = otherUserPublicKeys
         super.init(copyConstructor: previousState)
     }
