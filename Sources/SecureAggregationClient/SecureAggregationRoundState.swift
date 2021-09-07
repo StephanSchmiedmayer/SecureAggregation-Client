@@ -22,6 +22,7 @@ enum SecureAggregationRoundState<Value: SAWrappedValue> {
     case round2Finished(_: Round2FinishedState<Value>)
 //    case round3 (all red parts skipped for now)
     case round4(_:Round4State<Value>)
+    case finished(_: Value)
 }
 
 class LoginState {

@@ -327,4 +327,16 @@ class SecureAggregationModel<Value: SAWrappedValue> {
             return aggregate
         }.finish()
     }
+
+    // MARK: Server -> Client
+    struct Round4ServerData {
+        let value: Value
+    }
+    
+    func processRound4Data(_ serverMessage: Round4ServerData) throws {
+        guard case .round4(_) = state else {
+            throw SecureAggregationError.incorrectStateForMethod
+        }
+        try state.advance(to: .finished(serverMessage.value))
+    }
 }

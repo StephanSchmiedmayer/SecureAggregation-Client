@@ -38,9 +38,9 @@ extension SecureAggregationRoundState {
         case .round2Finished(_):
             if case .round4 = targetState { return true }
         case .round4:
-            if case .waiting = targetState { return true }
-        case .aborted:
-            if case .waiting = targetState { return true }
+            if case .finished = targetState { return true }
+        case .aborted, .finished(_):
+            break
         }
         return false
     }
