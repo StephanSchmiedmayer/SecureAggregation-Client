@@ -116,7 +116,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
                                                                               b_u_secretKeyShared: b_u_secretKeyShared,
                                                                               ownUserId: ownUserId)
         // MARK: Save all messages received & values generated
-        #warning("TODO: save all messages received & values generated (where later needed)")
+        // TODO: save all messages received & values generated (where later needed)?
         try state.advance(to: .round1(Round1State(previousState: currentState,
                                                   b_u_privateKey: b_u_privateKey)))
         // return
