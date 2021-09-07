@@ -10,7 +10,7 @@ import SecureAggregationCore
 
 /// State gets set with the results collected from the Server
 enum SecureAggregationRoundState<Value: SAWrappedValue> {
-    case aborted
+    case aborted(reason: SecureAggregationProtocolError)
     case waiting
     case login(_: LoginState)
     case setup(_: SetupState<Value>)

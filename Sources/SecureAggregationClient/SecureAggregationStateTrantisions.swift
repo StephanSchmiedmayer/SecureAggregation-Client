@@ -44,4 +44,9 @@ extension SecureAggregationRoundState {
         }
         return false
     }
+    
+    /// Aborts the protocol
+    mutating func abort(becauseOf reason: SecureAggregationProtocolError) {
+        self = .aborted(reason: reason)
+    }
 }

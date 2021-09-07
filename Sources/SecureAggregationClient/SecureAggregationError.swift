@@ -9,6 +9,7 @@ import Foundation
 
 enum SecureAggregationProtocolError {
     case tThresholdUndercut
+    case unexpecedUserInProtocol
     case securityViolation(description: String?)
 }
 
