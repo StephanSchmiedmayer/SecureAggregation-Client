@@ -171,9 +171,9 @@ class SecureAggregationModel<Value: SAWrappedValue> {
                                                                                outputByteCount: 256)
             // encrypt
             let dataToBeEncrypted = SharesWrapper(u: ownUserId,
-                                                                     v: otherUserID,
-                                                                     s_uv_privateKeyShare: shares.s_uv_share,
-                                                                     b_uv_Share: shares.b_uv_share)
+                                                  v: otherUserID,
+                                                  s_uv_privateKeyShare: shares.s_uv_share,
+                                                  b_uv_Share: shares.b_uv_share)
             let data = try JSONEncoder().encode(dataToBeEncrypted)
             let encryptedData = try SASymmetricCipher.seal(data, using: symmectricKeyWithV)
             return EncryptedShare(e_uv: encryptedData,
