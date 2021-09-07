@@ -10,12 +10,12 @@ import XCTest
 import SecureAggregationCore
 @testable import SecureAggregationClient
 
-protocol MockServerMessage {
-    associatedtype ValueType: SAWrappedValue
-    var userID: UserID { get }
-    var config: SAConfiguration { get }
-    var round0ServerData: SecureAggregationModel<ValueType>.Round0ServerData { get }
-}
+//protocol MockServerMessage {
+//    associatedtype ValueType: SAWrappedValue
+//    var userID: UserID { get }
+//    var config: SAConfiguration { get }
+//    var round0ServerData: SecureAggregationModel<ValueType>.Round0ServerData { get }
+//}
 //
 //struct MockServerModel {
 //
@@ -34,16 +34,16 @@ final class SecureAggregationModelTests: XCTestCase {
 //        }
 //    }
     
-    struct MockServerMessages: MockServerMessage {
-        typealias ValueType = SAInt
-        
-        let userID = 0
-        let config = SAConfiguration(numberOfUsers: 10, threshold: 5, modulus: 100, salt: "LeagueOfLegends".data(using: .utf8)!)
-        let round0ServerData = SecureAggregationModel<SAInt>.Round0ServerData(collectedData: [
-            
-        ])
-
-    }
+//    struct MockServerMessages: MockServerMessage {
+//        typealias ValueType = SAInt
+//
+//        let userID = 0
+//        let config = SAConfiguration(numberOfUsers: 10, threshold: 5, modulus: 100, salt: "LeagueOfLegends".data(using: .utf8)!)
+//        let round0ServerData = SecureAggregationModel<SAInt>.Round0ServerData(collectedData: [
+//
+//        ])
+//
+//    }
     
     func testInitialization() {
         let model = SecureAggregationModel(value: SAInt(10))
@@ -61,7 +61,7 @@ final class SecureAggregationModelTests: XCTestCase {
             XCTFail("Unexpected state after login")
             return
         }
-        XCTAssertEqual(loginState.userID, userID)
+        XCTAssertEqual(loginState.ownUserID, userID)
     }
     
     func testRound1() {
