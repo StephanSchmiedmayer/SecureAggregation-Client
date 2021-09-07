@@ -247,6 +247,84 @@ class SecureAggregationModel<Value: SAWrappedValue> {
         }
         try state.advance(to: .round2Finished(Round2FinishedState<Value>(previousState: round2State, remainingUsers: serverMessage.remainingUsers)))
     }
+    
+    // MARK: - Round4
+    // MARK: Client -> Server
+    
+    struct AdressedShare: Codable {
+        var origin: UserID
+        var destination: UserID
+        var share: Secret.Share
     }
+    
+    struct Round4ClientData {
+        var s_uv: [AdressedShare]
+        var b_uv: [AdressedShare]
+    }
+    
+    class Round4ClientDataBuilder {
+        private(set) var s_uv: [AdressedShare]
+        private(set) var b_uv: [AdressedShare]
+        
+        init() {
+            s_uv = []
+            b_uv = []
+        }
 
+        func add_s_uv(_ share: AdressedShare) {
+            s_uv.append(share)
+        }
+        
+        func add_b_uv(_ share: AdressedShare) {
+            b_uv.append(share)
+        }
+        
+        func finish() -> Round4ClientData {
+            return Round4ClientData(s_uv: s_uv, b_uv: b_uv)
+        }
+    }
+    
+    func round4() throws -> Round4ClientData {
+        guard case .round2Finished(let currentState) = state else {
+            throw SecureAggregationError.incorrectStateForMethod
+        }
+        // MARK: Assertions
+        // Verify U3 part of U4
+        guard Set(currentState.U3).isSubset(of: currentState.U2) else {
+            throw SecureAggregationError.protocolAborted(reason: .unexpecedUserInProtocol)
+        }
+        // Verify |U4| >= t
+        guard uniqueRemainingUsersOverThreshold(userIDs: currentState.U3, currentState: currentState) else {
+            throw SecureAggregationError.protocolAborted(reason: .tThresholdUndercut)
+        }
+        
+        // MARK: Decrypt ciphertexts
+        let decryptedShares = try currentState.encryptedSharesForMe.map { encryptedShare -> SharesWrapper in
+            // Key aggrement
+            let optionalDecryptionKeys = currentState.otherUserPublicKeys.first { publicKeysOfUser in
+                publicKeysOfUser.userID == encryptedShare.u
+            }
+            guard let decryptionPublicKey = optionalDecryptionKeys?.c_publicKey else {
+                throw SecureAggregationError.protocolAborted(reason: .unexpecedUserInProtocol)
+            }
+            // decrypt
+            let sharedSecret = try currentState.generatedKeyPairs.c_privateKey.sharedSecretFromKeyAgreement(with: decryptionPublicKey)
+            let decryptionKey = sharedSecret.hkdfDerivedSymmetricKey(using: SA_HKDF_HashFunction.self, salt: currentState.config.salt, sharedInfo: Data(), outputByteCount: SASymmetricCipherKeyBitCount)
+            let decryptedData = try SASymmetricCipher.open(encryptedShare.e_uv, using: decryptionKey)
+            let decryptedWrapper = try JSONDecoder().decode(SharesWrapper.self, from: decryptedData)
+            // Assert
+            guard decryptedWrapper.u == encryptedShare.u && decryptedWrapper.v == encryptedShare.v else {
+                throw SecureAggregationError.protocolAborted(reason: .securityViolation(description: "Decrypted Shares wrong routing information"))
+            }
+            return decryptedWrapper
+        }
+        return decryptedShares.reduce(Round4ClientDataBuilder()) { aggregate, newValue in
+            if currentState.U3.contains(newValue.u) {
+                aggregate.add_b_uv(AdressedShare(origin: newValue.u, destination: newValue.v, share: newValue.b_uv_Share))
+            } else if (Set(currentState.U3).subtracting(currentState.U2)).contains(newValue.u) {
+                aggregate.add_s_uv(AdressedShare(origin: newValue.u, destination: newValue.v, share: newValue.s_uv_privateKeyShare))
+            }
+            return aggregate
+        }.finish()
+    }
 }
