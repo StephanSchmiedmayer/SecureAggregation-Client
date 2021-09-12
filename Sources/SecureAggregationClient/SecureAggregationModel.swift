@@ -10,9 +10,14 @@ import Combine
 import CryptoKit
 import SecureAggregationCore
 import ShamirSecretShare
+import SwiftUI
 
-class SecureAggregationModel<Value: SAWrappedValue> {
-    private(set) var state: SecureAggregationRoundState<Value> = .waiting
+class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
+    @Published private(set) var state: SecureAggregationRoundState<Value> = .waiting // TODO: make completely private
+    
+    var status: SecureAggregationStatus<Value> {
+        .init(state)
+    }
     
     private let dispatchQueue = DispatchQueue(label: "SecureAggregationModel") // TODO: actually use
     
