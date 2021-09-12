@@ -206,7 +206,7 @@ class SecureAggregationModel<Value: SAWrappedValue> {
             .add(ownMask, mod: modulus)
             .add(maskWithOtherUsers, mod: modulus)
         try state.advance(to: .round2(Round2State<Value>(previousState: currentState)))
-        return Model.Round2.ClientData(value: maskedValue)
+        return Model.Round2.ClientData(wrappedValue: Model.MaskedValueFromUser<Value>(maskedValue: maskedValue, origin: currentState.ownUserID))
     }
     
     // MARK: Server -> Client
