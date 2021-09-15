@@ -70,7 +70,7 @@ final class SecureAggregationModelTests: XCTestCase {
             try model.saveLoginData(userID: 10)
             try model.saveSetupData(config: SAConfiguration(numberOfUsers: 10, threshold: 1, modulus: 133, salt: "LeageOfLegens".data(using: .utf8)!))
             let _ = try model.round0()
-            try model.processRound0Data(Model.Round0.ServerData(collectedData: [Model.Round0.PublicKeysOfUser(userID: 5, c_publicKey: SAPubKeyCurve.KeyAgreement.PrivateKey().publicKey, s_publicKey: SAPubKeyCurve.KeyAgreement.PrivateKey().publicKey)]))
+            try model.processRound0Data(Model.Round0.ServerData(collectedData: [Model.PublicKeysOfUser(userID: 5, c_publicKey: SAPubKeyCurve.KeyAgreement.PrivateKey().publicKey, s_publicKey: SAPubKeyCurve.KeyAgreement.PrivateKey().publicKey)]))
         } catch is SecureAggregationError {
             XCTFail("SecureAggregationError")
         } catch {

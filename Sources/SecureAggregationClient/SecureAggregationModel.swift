@@ -54,7 +54,7 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
         let round0State = Round0State(previousState: setupState, generatedKeyPairs: generatedKeys)
         try state.advance(to: .round0(round0State))
         // send public keys to server
-        return Model.Round0.ClientData(publicKeyInformation: Model.Round0.PublicKeysOfUser(userID: round0State.ownUserID, c_publicKey: round0State.generatedKeyPairs.c_publicKey, s_publicKey: round0State.generatedKeyPairs.s_publicKey))
+        return Model.Round0.ClientData(publicKeyInformation: Model.PublicKeysOfUser(userID: round0State.ownUserID, c_publicKey: round0State.generatedKeyPairs.c_publicKey, s_publicKey: round0State.generatedKeyPairs.s_publicKey))
     }
     
     // MARK: Server -> Client
@@ -144,7 +144,7 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
                                           b_u_secretKeyShared: [Secret.Share],
                                           ownUserId: UserID) throws -> [Model.EncryptedShare] {
         return try zip(round0FinishedState.otherUserPublicKeys, zip(s_u_privateKeyShares, b_u_secretKeyShared)).map {
-            (otherUserPublicKeyWrapper: Model.Round0.PublicKeysOfUser,
+            (otherUserPublicKeyWrapper: Model.PublicKeysOfUser,
              shares:(s_uv_share: Secret.Share, b_uv_share: Secret.Share)) -> Model.EncryptedShare in
             // Calculate key agreement with user v
             let otherUserID = otherUserPublicKeyWrapper.userID

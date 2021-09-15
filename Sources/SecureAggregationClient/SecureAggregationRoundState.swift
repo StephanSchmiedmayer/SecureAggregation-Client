@@ -79,12 +79,12 @@ class Round0State<Value: SAWrappedValue>: SetupState<Value> {
 }
 
 class Round0FinishedState<Value: SAWrappedValue>: Round0State<Value> {
-    let otherUserPublicKeys: [Model.Round0.PublicKeysOfUser]
+    let otherUserPublicKeys: [Model.PublicKeysOfUser]
     var U1: [UserID] {
         otherUserPublicKeys.map { $0.userID }
     }
     
-    init(previousState: Round0State<Value>, otherUserPublicKeys: [Model.Round0.PublicKeysOfUser]) {
+    init(previousState: Round0State<Value>, otherUserPublicKeys: [Model.PublicKeysOfUser]) {
         self.otherUserPublicKeys = otherUserPublicKeys
         super.init(copyConstructor: previousState)
     }
