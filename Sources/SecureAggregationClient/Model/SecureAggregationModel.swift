@@ -150,7 +150,7 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
             let symmectricKeyWithV = sharedSecretWithV.hkdfDerivedSymmetricKey(using: SA_HKDF_HashFunction.self,
                                                                                salt: round0FinishedState.config.salt,
                                                                                sharedInfo: Data(),
-                                                                               outputByteCount: SASymmetricCipherKeyBitCount)
+                                                                               outputByteCount: SASymmetricCipherKeyByteCount)
             // encrypt
             let dataToBeEncrypted = Model.SharesWrapper(u: ownUserId,
                                                   v: otherUserID,
@@ -254,7 +254,7 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
             }
             // decrypt
             let sharedSecret = try currentState.generatedKeyPairs.c_privateKey.sharedSecretFromKeyAgreement(with: decryptionPublicKey)
-            let decryptionKey = sharedSecret.hkdfDerivedSymmetricKey(using: SA_HKDF_HashFunction.self, salt: currentState.config.salt, sharedInfo: Data(), outputByteCount: SASymmetricCipherKeyBitCount)
+            let decryptionKey = sharedSecret.hkdfDerivedSymmetricKey(using: SA_HKDF_HashFunction.self, salt: currentState.config.salt, sharedInfo: Data(), outputByteCount: SASymmetricCipherKeyByteCount)
             let decryptedData = try SASymmetricCipher.open(encryptedShare.e_uv, using: decryptionKey)
             let decryptedWrapper = try JSONDecoder().decode(Model.SharesWrapper.self, from: decryptedData)
             // Assert
