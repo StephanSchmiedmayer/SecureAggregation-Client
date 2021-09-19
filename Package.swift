@@ -9,7 +9,8 @@ let package = Package(
         .iOS(.v13),
         .macOS(.v10_15)
     ],
-    products: [
+    products
+        : [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "SecureAggregationClient",
@@ -23,6 +24,7 @@ let package = Package(
 //        .package(name: "SecureAggregationCore",
 //                 url: "ssh://git@bitbucket.ase.in.tum.de:7999/mk/secureaggregationcore.git",
 //                 Package.Dependency.Requirement.branch("master")),
+        .package(name: "swift-log", url: "git@github.com:apple/swift-log.git", Package.Dependency.Requirement.upToNextMajor(from: Version(1, 4, 2))),
         .package(name: "SecureAggregationCore", url: "../secureAggregationCore", Package.Dependency.Requirement.branch("master")),
         .package(name: "ShamirSecretShare", url: "git@github.com:StephanSchmiedmayer/SecretShare.swift.git", Package.Dependency.Requirement.branch("master")),
     ],
@@ -32,8 +34,9 @@ let package = Package(
         .target(
             name: "SecureAggregationClient", 
             dependencies: [
+                .product(name: "Logging", package: "swift-log"),
                 .product(name: "SecureAggregationCore", package: "SecureAggregationCore"),
-                .product(name: "ShamirSecretShare", package: "ShamirSecretShare")
+                .product(name: "ShamirSecretShare", package: "ShamirSecretShare"),
             ]),
         .testTarget(
             name: "SecureAggregationClientTests",
