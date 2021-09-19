@@ -110,7 +110,7 @@ public class BasicSecureAggregationController<Value: SAWrappedValue>: Observable
             return
         }
         let cliendDataNeededForServerData = Network.Round1.ClientDataNeededForServerData(userID)
-        server.request(for: .round0ServerMessage,
+        server.request(for: .round1ServerMessage,
                        decodeInto: Network.Round1.ServerData.self,
                        body: cliendDataNeededForServerData) { result in
             try self.model.processRound1Data(try result.unwrap())
