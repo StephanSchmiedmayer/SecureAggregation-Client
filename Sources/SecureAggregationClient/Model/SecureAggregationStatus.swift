@@ -9,7 +9,7 @@ import Foundation
 import SecureAggregationCore
 
 /// Simplification of SecureAggregationRoundState
-enum SecureAggregationStatus<Value: SAWrappedValue> {
+public enum SecureAggregationStatus<Value: SAWrappedValue> {
     case aborted(reason: SecureAggregationProtocolError)
     case waiting
     case login
@@ -50,6 +50,35 @@ enum SecureAggregationStatus<Value: SAWrappedValue> {
             self = .round4
         case .finished(let value):
             self = .finished(value)
+        }
+    }
+    
+    public var description: String {
+        switch self {
+        case .aborted(reason: let reason):
+            return "aborted: \(reason)"
+        case .waiting:
+            return "waiting"
+        case .login:
+            return "login"
+        case .setup:
+            return "setup"
+        case .round0:
+            return "round0"
+        case .round0Finished:
+            return "round0Finished"
+        case .round1:
+            return "round1"
+        case .round1Finished:
+            return "round1Finished"
+        case .round2:
+            return "round2"
+        case .round2Finished:
+            return "round2Finished"
+        case .round4:
+            return "round4"
+        case .finished(let value):
+            return "finished: \(value)"
         }
     }
 }

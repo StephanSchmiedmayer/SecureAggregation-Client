@@ -15,14 +15,10 @@ import SwiftUI
 class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
     @Published private(set) var state: SecureAggregationRoundState<Value> = .waiting // TODO: make completely private
     
-    var status: SecureAggregationStatus<Value> {
-        .init(state)
-    }
-    
     private let dispatchQueue = DispatchQueue(label: "SecureAggregationModel") // TODO: actually use
     
     /// The value to aggregate
-    private var value: Value
+    let value: Value
     
     init(value: Value) {
         self.value = value
@@ -170,6 +166,14 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
 
     
     // MARK: Server -> Client
+    /// Returns the information necessary for the server to send the Round1.ServerData
+    func getRound1ServerRequestData() throws -> UserID {
+        guard case .round1(let round1State) = state else {
+            throw SecureAggregationError.incorrectStateForMethod
+        }
+        return round1State.ownUserID
+    }
+    
     func processRound1Data(_ serverMessage: Model.Round1.ServerData) throws {
         guard case .round1(let round1State) = state else {
             throw SecureAggregationError.incorrectStateForMethod
