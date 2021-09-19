@@ -47,7 +47,7 @@ public class BasicSecureAggregationController<Value: SAWrappedValue>: Observable
     public var description: String {
         "value: \(value.description), status: \(status.description)"
     }
-        
+    
     public func start() {
         server.requestIgnoringResponse(for: .start)
     }
@@ -65,8 +65,8 @@ public class BasicSecureAggregationController<Value: SAWrappedValue>: Observable
     
     public func setup() {
         server.request(for: .setup,
-                            decodeInto: SAConfiguration.self,
-                            callToModel: model.saveSetupData)
+                       decodeInto: SAConfiguration.self,
+                       callToModel: model.saveSetupData)
     }
     
     public func finishSetup() {
@@ -85,7 +85,7 @@ public class BasicSecureAggregationController<Value: SAWrappedValue>: Observable
     
     public func round0DownloadServerMessage() {
         server.request(for: .round0ServerMessage,
-                            decodeInto: Network.Round0.ServerData.self) { data in
+                       decodeInto: Network.Round0.ServerData.self) { data in
             try self.model.processRound0Data(try data.unwrap())
         }
     }
@@ -116,11 +116,11 @@ public class BasicSecureAggregationController<Value: SAWrappedValue>: Observable
             try self.model.processRound1Data(try result.unwrap())
         }
     }
-
+    
     public func advanceToRound2() {
         server.requestIgnoringResponse(for: .advanceToRound2)
     }
-
+    
     public func round2SendMessage() {
         server.requestIgnoringReponse(for: .round2ClientMessage) {
             Network.Round2.ClientData(try self.model.round2())
@@ -133,15 +133,15 @@ public class BasicSecureAggregationController<Value: SAWrappedValue>: Observable
     
     public func round2DownloadServerMessage() {
         server.request(for: .round2ServerMessage,
-                            decodeInto: Network.Round2.ServerData.self) { data in
+                       decodeInto: Network.Round2.ServerData.self) { data in
             try self.model.processRound2Data(data.unwrap())
         }
     }
-
+    
     public func advanceToRound4() {
         server.requestIgnoringResponse(for: .advanceToRound4)
     }
-
+    
     public func round4SendMessage() {
         server.requestIgnoringReponse(for: .round4ClientMessage) {
             Network.Round4.ClientData<SAInt>(try self.model.round4())
@@ -154,7 +154,7 @@ public class BasicSecureAggregationController<Value: SAWrappedValue>: Observable
     
     public func round4DownloadServerMessage() {
         server.request(for: .round4ServerMessage,
-                            decodeInto: Network.Round4.ServerData.self) { data in
+                       decodeInto: Network.Round4.ServerData.self) { data in
             try self.model.processRound4Data(data.unwrap())
         }
     }
