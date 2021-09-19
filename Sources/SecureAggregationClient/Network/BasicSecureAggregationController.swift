@@ -105,14 +105,14 @@ public class BasicSecureAggregationController<Value: SAWrappedValue>: Observable
     }
     
     public func round1DownloadServerMessage() {
-        guard let userID = try? model.getRound1ServerRequestData(),
-              let userIDData = try? JSONEncoder().encode(userID) else {
+        guard let userID = try? model.getRound1ServerRequestData() else {
             logger.network(endpoint: .round1ServerMessage, "Could not load userID from Model")
             return
         }
+        let cliendDataNeededForServerData = Network.Round1.ClientDataNeededForServerData(userID)
         server.request(for: .round0ServerMessage,
-                       body: userIDData,
-                       decodeInto: Network.Round1.ServerData.self) { result in
+                       decodeInto: Network.Round1.ServerData.self,
+                       body: cliendDataNeededForServerData) { result in
             try self.model.processRound1Data(try result.unwrap())
         }
     }
