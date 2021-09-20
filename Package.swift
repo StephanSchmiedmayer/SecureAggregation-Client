@@ -25,7 +25,7 @@ let package = Package(
 //                 url: "ssh://git@bitbucket.ase.in.tum.de:7999/mk/secureaggregationcore.git",
 //                 Package.Dependency.Requirement.branch("master")),
         .package(name: "swift-log", url: "git@github.com:apple/swift-log.git", Package.Dependency.Requirement.upToNextMajor(from: Version(1, 4, 2))),
-        .package(name: "SecureAggregationCore", url: "../secureAggregationCore", Package.Dependency.Requirement.branch("master")),
+        .package(name: "SecureAggregationCore", url: "ssh://git@bitbucket.ase.in.tum.de:7999/mk/secureaggregationcore.git", Package.Dependency.Requirement.branch("master")),
         .package(name: "ShamirSecretShare", url: "git@github.com:StephanSchmiedmayer/SecretShare.swift.git", Package.Dependency.Requirement.branch("master")),
     ],
     targets: [
