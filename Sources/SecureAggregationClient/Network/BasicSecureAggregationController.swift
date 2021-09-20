@@ -160,3 +160,59 @@ public class BasicSecureAggregationController<Value: SAWrappedValue>: Observable
     }
 }
 
+extension SABasicAPI {
+    /// Calls the corresponding method on the given `BasicSecureAggregationController`
+    public func call<Value: SAWrappedValue>(on controller: BasicSecureAggregationController<Value>) {
+        switch self {
+        case .start:
+            controller.start()
+        case .login:
+            controller.login()
+        case .finishLogin:
+            controller.finishLogin()
+        case .setup:
+            controller.setup()
+        case .finishSetup:
+            controller.finishSetup()
+        case .round0ClientMessage:
+            controller.round0SendMessage()
+        case .finishRound0Collection:
+            controller.finishRound0Collection()
+        case .round0ServerMessage:
+            controller.round0DownloadServerMessage()
+        case .advanceToRound1:
+            controller.advanceToRound1()
+        case .round1ClientMessage:
+            controller.round1SendMessage()
+        case .finishRound1Collection:
+            controller.finishRound1Collection()
+        case .round1ServerMessage:
+            controller.round1DownloadServerMessage()
+        case .advanceToRound2:
+            controller.advanceToRound2()
+        case .round2ClientMessage:
+            controller.round2SendMessage()
+        case .finishRound2Collection:
+            controller.finishRound2Collection()
+        case .round2ServerMessage:
+            controller.round2DownloadServerMessage()
+        case .advanceToRound4:
+            controller.advanceToRound4()
+        case .round4ClientMessage:
+            controller.round4SendMessage()
+        case .finishRound4Collection:
+            controller.finishRound4Collection()
+        case .round4ServerMessage:
+            controller.round4DownloadServerMessage()
+        }
+    }
+    
+    public var onlyCallOncePerRound: Bool {
+        switch self {
+        case .start, .finishLogin, .finishSetup, .finishRound0Collection, .finishRound1Collection, .finishRound2Collection, .finishRound4Collection, .advanceToRound1, .advanceToRound2, .advanceToRound4:
+            return true
+        case .login, .setup, .round0ClientMessage, .round0ServerMessage, .round1ClientMessage, .round1ServerMessage, .round2ClientMessage, .round2ServerMessage, .round4ClientMessage, .round4ServerMessage:
+            return false
+        }
+    }
+}
