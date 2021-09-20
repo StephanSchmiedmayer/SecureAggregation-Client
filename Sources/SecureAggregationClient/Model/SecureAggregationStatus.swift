@@ -8,6 +8,7 @@
 import Foundation
 import SecureAggregationCore
 
+
 /// Simplification of SecureAggregationRoundState
 public enum SecureAggregationStatus<Value: SAWrappedValue> {
     case aborted(reason: SecureAggregationProtocolError)
@@ -81,4 +82,8 @@ public enum SecureAggregationStatus<Value: SAWrappedValue> {
             return "finished: \(value)"
         }
     }
+    
+//    func reduce() -> ReducedSAStatus {
+//        ReducedSAStatus(self)
+//    }
 }
