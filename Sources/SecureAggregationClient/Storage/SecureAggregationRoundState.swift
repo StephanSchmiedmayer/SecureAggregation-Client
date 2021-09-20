@@ -115,7 +115,9 @@ class Round1State<Value: SAWrappedValue>: Round0FinishedState<Value> {
 class Round1FinishedState<Value: SAWrappedValue>: Round1State<Value> {
     let encryptedSharesForMe: [Model.EncryptedShare]
     var U2: [UserID] {
-        encryptedSharesForMe.map { $0.u }
+        var result = encryptedSharesForMe.map { $0.u }
+        result.append(ownUserID)
+        return result
     }
     
     init(previousState: Round1State<Value>, encryptedShares: [Model.EncryptedShare]) {

@@ -263,7 +263,8 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
             }
             return decryptedWrapper
         }
-        return decryptedShares.reduce(Model.Round4.ClientDataBuilder()) { aggregate, newValue in
+        
+        let result = decryptedShares.reduce(Model.Round4.ClientDataBuilder()) { aggregate, newValue in
             if currentState.U3.contains(newValue.u) {
                 aggregate.add_b_uv(Model.AdressedShare(origin: newValue.u, destination: newValue.v, share: newValue.b_uv_Share))
             } else if (Set(currentState.U3).subtracting(currentState.U2)).contains(newValue.u) {
@@ -271,6 +272,10 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
             }
             return aggregate
         }.finish()
+        
+        try state.advance(to: .round4(Round4State<Value>(previousState: currentState)))
+        
+        return result
     }
 
     // MARK: Server -> Client
