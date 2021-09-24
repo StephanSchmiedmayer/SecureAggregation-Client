@@ -46,11 +46,14 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
             throw SecureAggregationError.incorrectStateForMethod
         }
         // generate 2 key pairs
-        let generatedKeys = GeneratedKeyPairs(c_privateKey: SAPubKeyCurve.KeyAgreement.PrivateKey(), s_privateKey: SAPubKeyCurve.KeyAgreement.PrivateKey())
+        let generatedKeys = GeneratedKeyPairs(c_privateKey: SAPubKeyCurve.KeyAgreement.PrivateKey(),
+                                              s_privateKey: SAPubKeyCurve.KeyAgreement.PrivateKey())
         let round0State = Round0State(previousState: setupState, generatedKeyPairs: generatedKeys)
         try state.advance(to: .round0(round0State))
         // send public keys to server
-        return Model.Round0.ClientData(publicKeyInformation: Model.PublicKeysOfUser(userID: round0State.ownUserID, c_publicKey: round0State.generatedKeyPairs.c_publicKey, s_publicKey: round0State.generatedKeyPairs.s_publicKey))
+        return Model.Round0.ClientData(publicKeyInformation: Model.PublicKeysOfUser(userID: round0State.ownUserID,
+                                                                                    c_publicKey: round0State.generatedKeyPairs.c_publicKey,
+                                                                                    s_publicKey: round0State.generatedKeyPairs.s_publicKey))
     }
     
     // MARK: Server -> Client
@@ -94,9 +97,9 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
         // MARK: encrypt s_uv_SK, b_uv, u.id, v.id with shared key of u & v => e_uv
         let ownUserId = currentState.ownUserID
         let encryptedAndWrappedSharesReadyForTransport = try encryptAndWrapShares(currentState: currentState,
-                                                                              s_u_privateKeyShares: s_u_privateKeyShares,
-                                                                              b_u_secretKeyShared: b_u_secretKeyShared,
-                                                                              ownUserId: ownUserId)
+                                                                                  s_u_privateKeyShares: s_u_privateKeyShares,
+                                                                                  b_u_secretKeyShared: b_u_secretKeyShared,
+                                                                                  ownUserId: ownUserId)
         // MARK: Save all messages received & values generated
         // TODO: save all messages received & values generated (where later needed)?
         try state.advance(to: .round1(Round1State(previousState: currentState,
@@ -153,14 +156,14 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
                                                                                outputByteCount: SASymmetricCipherKeyByteCount)
             // encrypt
             let dataToBeEncrypted = Model.SharesWrapper(u: ownUserId,
-                                                  v: otherUserID,
-                                                  s_uv_privateKeyShare: shares.s_uv_share,
-                                                  b_uv_Share: shares.b_uv_share)
+                                                        v: otherUserID,
+                                                        s_uv_privateKeyShare: shares.s_uv_share,
+                                                        b_uv_Share: shares.b_uv_share)
             let data = try JSONEncoder().encode(dataToBeEncrypted)
             let encryptedData = try SASymmetricCipher.seal(data, using: symmectricKeyWithV)
             return Model.EncryptedShare(e_uv: encryptedData,
-                                  u: ownUserId,
-                                  v: otherUserID)
+                                        u: ownUserId,
+                                        v: otherUserID)
         }
     }
 
@@ -209,7 +212,7 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
         }
         // Expand secret b_u into mask
         let b_u_sharedSecret = try currentState.b_u_privateKey.sharedSecretFromKeyAgreement(with: currentState.b_u_privateKey.publicKey)
-        let ownMask = Value.mask(forSeed: b_u_sharedSecret, mod: currentState.config.modulus)
+        let ownMask = Value.mask(forSeed: b_u_sharedSecret, mod: modulus)
         // Add all masks to data
         let maskedValue = value
             .add(ownMask, mod: modulus)
