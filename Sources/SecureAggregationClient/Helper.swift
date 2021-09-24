@@ -16,9 +16,10 @@ extension Array {
         return Set(self.map { $0[keyPath: keyPath] }).count == self.count // TODO: hash-collisions?
     }
     
-    /// Appends the given Element and returns (the modified) self
+    /// Appends the given Element and returns a modified copy of self. Does not modify `self`
     func appended(_ element: Element) -> Self {
-        self.appended(element)
-        return self
+        var copy = self
+        copy.append(element)
+        return copy
     }
 }
