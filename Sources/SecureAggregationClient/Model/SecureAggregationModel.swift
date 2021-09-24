@@ -89,7 +89,7 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
         // MARK: Generate t-out-of-|U1| shares of s_u_SK and b_u
         // common parameters for both sharing-processes:
         let threshold = currentState.config.threshold
-        let numberOfShares = currentState.U1.count
+        let numberOfShares = currentState.U1.count // TODO: - 1 weil man selbst keine Share braucht
         // create shares:
         let s_u_privateKeyShares = try createShares(for: currentState.generatedKeyPairs.s_privateKey.rawRepresentation, threshold: threshold, numberOfShares: numberOfShares)
         let b_u_secretKeyShared = try  createShares(for: b_u_privateKey.rawRepresentation, threshold: threshold, numberOfShares: numberOfShares)
@@ -270,7 +270,7 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
         let result = decryptedShares.reduce(Model.Round4.ClientDataBuilder()) { aggregate, newValue in
             if currentState.U3.contains(newValue.u) {
                 aggregate.add_b_uv(Model.AdressedShare(origin: newValue.u, destination: newValue.v, share: newValue.b_uv_Share))
-            } else if (Set(currentState.U3).subtracting(currentState.U2)).contains(newValue.u) {
+            } else if (Set(currentState.U2).subtracting(currentState.U3)).contains(newValue.u) {
                 aggregate.add_s_uv(Model.AdressedShare(origin: newValue.u, destination: newValue.v, share: newValue.s_uv_privateKeyShare))
             }
             return aggregate

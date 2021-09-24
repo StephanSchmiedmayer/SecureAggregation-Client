@@ -15,4 +15,10 @@ extension Array {
     func allUnique<T: Equatable & Hashable>(_ keyPath: KeyPath<ArrayLiteralElement, T>) -> Bool {
         return Set(self.map { $0[keyPath: keyPath] }).count == self.count // TODO: hash-collisions?
     }
+    
+    /// Appends the given Element and returns (the modified) self
+    func appended(_ element: Element) -> Self {
+        self.appended(element)
+        return self
+    }
 }

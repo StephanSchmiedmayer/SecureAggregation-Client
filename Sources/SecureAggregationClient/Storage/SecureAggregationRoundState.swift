@@ -81,7 +81,7 @@ class Round0State<Value: SAWrappedValue>: SetupState<Value> {
 class Round0FinishedState<Value: SAWrappedValue>: Round0State<Value> {
     let otherUserPublicKeys: [Model.PublicKeysOfUser]
     var U1: [UserID] {
-        otherUserPublicKeys.map { $0.userID }
+        otherUserPublicKeys.map { $0.userID }.appended(ownUserID)
     }
     
     init(previousState: Round0State<Value>, otherUserPublicKeys: [Model.PublicKeysOfUser]) {
@@ -115,9 +115,7 @@ class Round1State<Value: SAWrappedValue>: Round0FinishedState<Value> {
 class Round1FinishedState<Value: SAWrappedValue>: Round1State<Value> {
     let encryptedSharesForMe: [Model.EncryptedShare]
     var U2: [UserID] {
-        var result = encryptedSharesForMe.map { $0.u }
-        result.append(ownUserID)
-        return result
+        encryptedSharesForMe.map { $0.u }.appended(ownUserID)
     }
     
     init(previousState: Round1State<Value>, encryptedShares: [Model.EncryptedShare]) {
