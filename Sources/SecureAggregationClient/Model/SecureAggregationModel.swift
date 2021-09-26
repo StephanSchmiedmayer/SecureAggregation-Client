@@ -120,7 +120,7 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
         let otherUserPublicKeys = round0FinishedState.otherUserPublicKeys
 
         // Assert |U1| >= t
-        guard uniqueRemainingUsersOverThreshold(userIDs: otherUserPublicKeys.map { $0.userID },
+        guard uniqueRemainingUsersOverThreshold(userIDs: round0FinishedState.U1,
                                                 currentState: round0FinishedState) else {
             return SecureAggregationError.protocolAborted(reason: .tThresholdUndercut)
         }
@@ -192,7 +192,7 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
         }
         let modulus = currentState.config.modulus
         // MARK: Assertions
-        guard uniqueRemainingUsersOverThreshold(userIDs: currentState.encryptedSharesForMe.map { $0.u }, currentState: currentState) else {
+        guard uniqueRemainingUsersOverThreshold(userIDs: currentState.U2, currentState: currentState) else {
             throw SecureAggregationError.protocolAborted(reason: .tThresholdUndercut)
         }
         // MARK: Compute p_uv
