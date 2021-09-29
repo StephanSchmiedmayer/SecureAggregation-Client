@@ -206,7 +206,7 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
             (try currentState.generatedKeyPairs.s_privateKey.sharedSecretFromKeyAgreement(with: otherUserPublicKeysWrapper.s_publicKey), otherUserPublicKeysWrapper.userID)
         }.map { (sharedSecret, otherUserID) in
             // Expand shared secret s_uv into mask
-            Value.mask(forSeed: sharedSecret, mod: modulus).cancelling(ownID: currentState.ownUserID, otherID: otherUserID)
+            Value.mask(forSeed: sharedSecret, mod: modulus).cancelling(ownID: currentState.ownUserID, otherID: otherUserID, mod: currentState.config.modulus)
         }.reduce(Value.zero) { aggregate, value in
             aggregate.add(value, mod: modulus)
         }
