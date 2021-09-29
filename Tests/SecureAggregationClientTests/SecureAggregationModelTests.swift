@@ -45,8 +45,12 @@ final class SecureAggregationModelTests: XCTestCase {
 //
 //    }
     
+    var exampleSAInt: SAInt {
+        SAInt(10, mod: 10)
+    }
+    
     func testInitialization() {
-        let model = SecureAggregationModel(value: SAInt(10))
+        let model = SecureAggregationModel(value: exampleSAInt)
         guard case .waiting = model.state else {
             XCTFail("Initial state not waiting")
             return
@@ -55,7 +59,7 @@ final class SecureAggregationModelTests: XCTestCase {
     
     func testLogin() {
         let userID = 13
-        let model = SecureAggregationModel(value: SAInt(10))
+        let model = SecureAggregationModel(value: exampleSAInt)
         XCTAssertNoThrow(try model.saveLoginData(userID: userID), "SaveLoginData threw")
         guard case .login(let loginState) = model.state else {
             XCTFail("Unexpected state after login")
@@ -65,7 +69,7 @@ final class SecureAggregationModelTests: XCTestCase {
     }
     
     func testRound1() {
-        let model = SecureAggregationModel(value: SAInt(10))
+        let model = SecureAggregationModel(value: exampleSAInt)
         do {
             try model.saveLoginData(userID: 10)
             try model.saveSetupData(config: SAConfiguration(numberOfUsers: 10, threshold: 1, modulus: 133, salt: "LeageOfLegens".data(using: .utf8)!))
