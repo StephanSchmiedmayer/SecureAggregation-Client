@@ -92,14 +92,15 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
         let numberOfShares = currentState.U1.count // TODO: - 1 weil man selbst keine Share braucht
         // create shares:
         let s_u_privateKeyShares = try createShares(for: currentState.generatedKeyPairs.s_privateKey.rawRepresentation, threshold: threshold, numberOfShares: numberOfShares)
-        let b_u_secretKeyShared = try  createShares(for: b_u_privateKey.rawRepresentation, threshold: threshold, numberOfShares: numberOfShares)
+        let b_u_secretKeyShared = try createShares(for: b_u_privateKey.rawRepresentation, threshold: threshold, numberOfShares: numberOfShares)
         
         // MARK: encrypt s_uv_SK, b_uv, u.id, v.id with shared key of u & v => e_uv
         let ownUserId = currentState.ownUserID
-        let encryptedAndWrappedSharesReadyForTransport = try encryptAndWrapShares(currentState: currentState,
-                                                                                  s_u_privateKeyShares: s_u_privateKeyShares,
-                                                                                  b_u_secretKeyShared: b_u_secretKeyShared,
-                                                                                  ownUserId: ownUserId)
+        let encryptedAndWrappedSharesReadyForTransport = try encryptAndWrapShares(
+            currentState: currentState,
+            s_u_privateKeyShares: s_u_privateKeyShares,
+            b_u_secretKeyShared: b_u_secretKeyShared,
+            ownUserId: ownUserId)
         // MARK: Save all messages received & values generated
         // TODO: save all messages received & values generated (where later needed)?
         try state.advance(to: .round1(Round1State(previousState: currentState,
@@ -275,6 +276,7 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
             }
             return aggregate
         }.finish()
+        // TODO: add (own) b_uu to server message
         
         try state.advance(to: .round4(Round4State<Value>(previousState: currentState)))
         
