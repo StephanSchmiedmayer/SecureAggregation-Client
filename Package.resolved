@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/swift-server/async-http-client.git",
         "state": {
           "branch": null,
-          "revision": "d928cc81b31796dcea7378bf7e2519bed569c659",
-          "version": "1.6.1"
+          "revision": "1081b0b0541f535ca088acdb56f5ca5598bc6247",
+          "version": "1.6.3"
         }
       },
       {
@@ -47,20 +47,11 @@
         }
       },
       {
-        "package": "ShamirSecretShare",
-        "repositoryURL": "git@github.com:StephanSchmiedmayer/SecretShare.swift.git",
-        "state": {
-          "branch": "master",
-          "revision": "5496e39a3bd22a48002819d1a95ecb4e15ed33a0",
-          "version": null
-        }
-      },
-      {
         "package": "SecureAggregationCore",
         "repositoryURL": "ssh://git@bitbucket.ase.in.tum.de:7999/mk/secureaggregationcore.git",
         "state": {
           "branch": "master",
-          "revision": "4acb64e289cb9534fbcb31e500e6901e58799587",
+          "revision": "d1d31502c9e009eb80c5c06b16293785f24a3010",
           "version": null
         }
       },
@@ -146,12 +137,21 @@
         }
       },
       {
+        "package": "SwiftySSS",
+        "repositoryURL": "git@github.com:StephanSchmiedmayer/SwiftySSS.git",
+        "state": {
+          "branch": "main",
+          "revision": "894e63dd7feab09ba403adc38471b91c0ce9d618",
+          "version": null
+        }
+      },
+      {
         "package": "vapor",
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "8ee22de2845af389b9ed0e24f63983a0b5da6ab9",
-          "version": "4.49.0"
+          "revision": "27119271502bf266be293be5325f0fb72435e8fd",
+          "version": "4.49.2"
         }
       },
       {

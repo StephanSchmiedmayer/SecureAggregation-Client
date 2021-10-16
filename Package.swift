@@ -26,7 +26,7 @@ let package = Package(
 //                 Package.Dependency.Requirement.branch("master")),
         .package(name: "swift-log", url: "git@github.com:apple/swift-log.git", Package.Dependency.Requirement.upToNextMajor(from: Version(1, 4, 2))),
         .package(name: "SecureAggregationCore", url: "ssh://git@bitbucket.ase.in.tum.de:7999/mk/secureaggregationcore.git", Package.Dependency.Requirement.branch("master")),
-        .package(name: "ShamirSecretShare", url: "git@github.com:StephanSchmiedmayer/SecretShare.swift.git", Package.Dependency.Requirement.branch("master")),
+        .package(name: "SwiftySSS", url: "git@github.com:StephanSchmiedmayer/SwiftySSS.git", Package.Dependency.Requirement.branch("main")),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -36,7 +36,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "SecureAggregationCore", package: "SecureAggregationCore"),
-                .product(name: "ShamirSecretShare", package: "ShamirSecretShare"),
+                .product(name: "SwiftySSS", package: "SwiftySSS"),
             ]),
         .testTarget(
             name: "SecureAggregationClientTests",

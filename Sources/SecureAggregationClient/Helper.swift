@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import ShamirSecretShare
+import SwiftySSS
 
 extension Array {
     /// Checks if all elements in self pointed to by the keyPath are unique

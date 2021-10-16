@@ -9,7 +9,7 @@ import Foundation
 import Combine
 import CryptoKit
 import SecureAggregationCore
-import ShamirSecretShare
+import SwiftySSS
 import SwiftUI
 
 class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
@@ -93,6 +93,8 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
         // create shares:
         let s_u_privateKeyShares = try createShares(for: currentState.generatedKeyPairs.s_privateKey.rawRepresentation, threshold: threshold, numberOfShares: numberOfShares)
         let b_u_secretKeyShared = try createShares(for: b_u_privateKey.rawRepresentation, threshold: threshold, numberOfShares: numberOfShares)
+        
+        // TODO: save own b_uv for later sending to the server
         
         // MARK: encrypt s_uv_SK, b_uv, u.id, v.id with shared key of u & v => e_uv
         let ownUserId = currentState.ownUserID
