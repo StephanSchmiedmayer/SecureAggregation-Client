@@ -209,13 +209,13 @@ class SecureAggregationModel<Value: SAWrappedValue>: ObservableObject {
             (try currentState.generatedKeyPairs.s_privateKey.sharedSecretFromKeyAgreement(with: otherUserPublicKeysWrapper.s_publicKey), otherUserPublicKeysWrapper.userID)
         }.map { (sharedSecret, otherUserID) in
             // Expand shared secret s_uv into mask
-            Value.mask(forSeed: sharedSecret, mod: modulus).cancelling(ownID: currentState.ownUserID, otherID: otherUserID, mod: currentState.config.modulus)
+            try Value.mask(sharedSecret: sharedSecret, salt: currentState.config.salt, mod: modulus).cancelling(ownID: currentState.ownUserID, otherID: otherUserID, mod: currentState.config.modulus)
         }.reduce(Value.zero) { aggregate, value in
             aggregate.add(value, mod: modulus)
         }
         // Expand secret b_u into mask
         let b_u_sharedSecret = try currentState.b_u_privateKey.sharedSecretFromKeyAgreement(with: currentState.b_u_privateKey.publicKey)
-        let ownMask = Value.mask(forSeed: b_u_sharedSecret, mod: modulus)
+        let ownMask = try Value.mask(sharedSecret: b_u_sharedSecret, salt: currentState.config.salt, mod: modulus)
         // Add all masks to data
         let maskedValue = value
             .add(ownMask, mod: modulus)
